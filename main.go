@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -43,6 +43,7 @@ func main() {
 		},
 		AllowCredentials: true,
 		AllowAllOrigins:  true,
+		MaxAge:           12 * time.Hour,
 	}))
 
 	v1 := r.Group("v1/todos")
@@ -105,7 +106,7 @@ func fetchAllTodos(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": _todos})
 }
 
-// updateTodo update a todo
+// updateTodo updates a todo
 func updateTodo(c *gin.Context) {
 	var todo todoModel
 	todoID := c.Param("id")
@@ -117,10 +118,10 @@ func updateTodo(c *gin.Context) {
 		return
 	}
 
+	db.Model(&todo).Update("title", c.PostForm("title"))
 	completed, _ := strconv.Atoi(c.PostForm("completed"))
-	fmt.Println("updateTodo complete:")
-	fmt.Println(completed)
 	db.Model(&todo).Update("completed", completed)
+
 	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "Todo updated successfully!"})
 }
 
