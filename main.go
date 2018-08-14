@@ -29,11 +29,12 @@ func main() {
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{
-		AllowMethods: []string{"GET", "POST", "PUT", "HEAD", "DELETE"},
+		AllowMethods: []string{"GET", "POST", "PUT", "HEAD", "OPTIONS", "DELETE"},
 		AllowHeaders: []string{
 			"Origin",
 			"Content-Length",
 			"Content-Type",
+			"X-Requested-With",
 			"Authorization",
 		},
 		ExposeHeaders: []string{
@@ -48,7 +49,6 @@ func main() {
 	{
 		v1.POST("/", createTodo)
 		v1.GET("/", fetchAllTodos)
-		// v1.GET("/:id", fetchSingleTodo)
 		v1.PUT("/:id", updateTodo)
 		v1.DELETE("/:id", deleteTodo)
 	}
@@ -76,10 +76,7 @@ type (
 func createTodo(c *gin.Context) {
 	completed, _ := strconv.Atoi(c.PostForm("completed"))
 	todo := todoModel{Title: c.PostForm("title"), Completed: completed}
-	fmt.Println("############")
-	fmt.Println(todo)
-	fmt.Println(todo.Title)
-	fmt.Println(todo.Completed)
+
 	db.Save(&todo)
 	c.JSON(http.StatusCreated, gin.H{"status": http.StatusCreated, "message": "Todo item created sucessfully", "resourceId": todo.ID})
 }
@@ -120,8 +117,9 @@ func updateTodo(c *gin.Context) {
 		return
 	}
 
-	// db.Model(&todo).Update("title", c.PostForm("title"))
 	completed, _ := strconv.Atoi(c.PostForm("completed"))
+	fmt.Println("updateTodo complete:")
+	fmt.Println(completed)
 	db.Model(&todo).Update("completed", completed)
 	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": "Todo updated successfully!"})
 }
